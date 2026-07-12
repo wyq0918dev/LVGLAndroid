@@ -22,4 +22,5 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         log
         lvgl::lvgl
         lvgl::lvgl_demos
+        lvgl::lvgl_examples
 )
