@@ -1,7 +1,5 @@
 #include <iostream>
 #include <thread>
-#include <lvgl.h>
-#include <lv_demos.h>
 #include <jni.h>
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
@@ -49,6 +47,7 @@ static void nativeOnTouch(
     if (GlobalApp == nullptr) {
         return;
     }
+    
     GlobalApp->onTouch(touch, x, y);
 }
 

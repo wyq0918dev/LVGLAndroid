@@ -28,7 +28,7 @@ using namespace std;
  * @param px_map LVGL 绘制缓冲，包含 area 区域内的像素数据（RGB565 格式）
  */
 void DemoApp::lv_flush_callback(lv_display_t *display, const lv_area_t *area, uint8_t *px_map) {
-    if (is_running && window != nullptr) {
+    if (bIsRunning && window != nullptr) {
         // 懒分配全帧累积缓冲区（RGBA_8888，4 字节/像素），大小与 NativeWindow 帧缓冲一致
         if (surface_buf == nullptr) {
             surface_size = sizeof(uint32_t) * windowBuffer.stride * windowBuffer.height;
@@ -146,7 +146,7 @@ void DemoApp::start(ANativeWindow *win) {
         return;
     }
     LOG_D("LV Screen [%d x %d]", app_width, app_height);
-    is_running = true;
+    bIsRunning = true;
     m_thread = thread(&DemoApp::lv_loop_task, this);
 }
 
@@ -170,15 +170,15 @@ void DemoApp::lv_loop_task() {
     lv_log_register_print_cb(lv_log_print);
 
     // 创建显示对象，设置用户数据为 this 以便在静态回调中获取实例
-    auto *disp = lv_display_create(app_width, app_height);
-    lv_display_set_user_data(disp, this);
-    lv_display_set_flush_cb(disp, DemoApp::lv_flush_cb_static);
+    auto *display = lv_display_create(app_width, app_height);
+    lv_display_set_user_data(display, this);
+    lv_display_set_flush_cb(display, DemoApp::lv_flush_cb_static);
 
     // 分配绘制缓冲区（PARTIAL 模式），大小为 1 倍屏幕像素数（RGB565 = 2 字节/像素）
     // 之前使用 10 倍缓冲约 1.5MB，优化后仅需约 300KB，显著降低内存占用
     size_t buf_size = (size_t) app_width * app_height * 2;
     auto *buf = malloc(buf_size);
-    lv_display_set_buffers(disp, buf, nullptr, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    lv_display_set_buffers(display, buf, nullptr, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
 
     // 创建触摸输入设备（指针类型）
     auto *indev = lv_indev_create();
@@ -197,7 +197,7 @@ void DemoApp::lv_loop_task() {
 
     // LVGL 主循环：lv_timer_handler 返回下次需要运行的时间（毫秒），
     // 据此动态调整休眠时长，避免不必要的 CPU 唤醒
-    while (is_running) {
+    while (bIsRunning) {
         uint32_t time_till_next = lv_timer_handler();
         // 限制休眠范围：最少 1ms 避免忙等，最多 33ms（约 30fps）
         if (time_till_next < 1) time_till_next = 1;
@@ -222,7 +222,7 @@ void DemoApp::lv_loop_task() {
  * 线程退出后会自动 release NativeWindow 引用。
  */
 void DemoApp::stop() {
-    is_running = false;
+    bIsRunning = false;
     if (m_thread.joinable()) {
         m_thread.join();
     }

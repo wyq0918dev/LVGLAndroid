@@ -14,7 +14,7 @@ using namespace std;
  * LVGL 应用核心类，管理 LVGL 在 Android 上的完整生命周期。
  *
  * 线程安全说明：
- *   - isTouch/touchX/touchY/is_running 使用 atomic 保证跨线程读写安全
+ *   - isTouch/touchX/touchY/bIsRunning 使用 atomic 保证跨线程读写安全
  *   - LVGL API 调用全部在渲染线程内完成，不需要额外锁
  *   - start/stop 方法通过 join 保证线程同步
  */
@@ -48,8 +48,8 @@ private:
     atomic<int> isTouch = 0;                   // 触摸状态：1=按下，0=释放
     atomic<int> touchX = 0;                    // 触摸 X 坐标（已映射为 LVGL 逻辑坐标）
     atomic<int> touchY = 0;                    // 触摸 Y 坐标（已映射为 LVGL 逻辑坐标）
-    atomic<bool> is_running = false;           // 渲染线程运行标志
-    std::thread m_thread;                       // LVGL 渲染线程
+    atomic<bool> bIsRunning = false;           // 渲染线程运行标志
+    thread m_thread;                       // LVGL 渲染线程
 
     // LVGL 显示刷新回调（实例方法），将局部区域像素写入 NativeWindow
     void lv_flush_callback(lv_display_t *display, const lv_area_t *area, uint8_t *px_map);
