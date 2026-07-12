@@ -41,7 +41,8 @@ CMakeLists.txt
 # 查找LVGL库
 find_package(lvgl REQUIRED CONFIG)
 # 链接LVGL库
-target_link_libraries(${CMAKE_PROJECT_NAME}
+target_link_libraries(
+        ${CMAKE_PROJECT_NAME}
         lvgl::lvgl # 主LVGL库
         lvgl::lvgl_demos # 官方Demo (可选)
         lvgl::lvgl_examples # 官方Example (可选)
