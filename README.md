@@ -7,7 +7,9 @@
 
 适用于 Android 的 LVGL 静态 Prefab 库.
 
-此Prefab库仅用来提供LVGL源码的Android封装, 对于在Android上的渲染需要开发者自行实现, 当然此项目的demo模块已经提供了一个简单的实现, 开发者可以参考此实现来实现自己的渲染逻辑.
+此仓库基于官方 [LVGL](https://github.com/lvgl/lvgl) 仓库.
+
+此仓库仅用来提供 [LVGL](https://github.com/lvgl/lvgl) 源码的 [Prefab](https://developer.android.com/build/native-dependencies?hl=zh-cn&agpversion=4.1&buildsystem=cmake) 静态库, 对于在Android上的渲染需要开发者自行实现, 当然此项目的 [demo](https://github.com/wyq0918dev/LVGLAndroid/tree/master/demo) 模块已经提供了一个简单的实现, 开发者可以参考此实现来实现自己的渲染逻辑.
 
 ---
 
