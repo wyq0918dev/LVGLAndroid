@@ -49,11 +49,35 @@ android {
     }
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            create<MavenPublication>("release") {
+publishing {
+    publications {
+        create<MavenPublication>("release") {
+            groupId = "io.github.wyq0918dev"
+            artifactId = "lvgl"
+            version = "0.0.1+2"
+            afterEvaluate {
                 from(components["release"])
+            }
+            pom {
+                name = "LVGL"
+                description = "LVGL Prefab library for Android"
+                url = "https://github.com/wyq0918dev/LVGLAndroid"
+                licenses {
+                    license {
+                        name = "MIT"
+                        url = "https://github.com/wyq0918dev/LVGLAndroid/blob/master/LICENSE"
+                    }
+                }
+                developers {
+                    developer {
+                        name = "wyq0918dev"
+                        url = "https://github.com/wyq0918dev"
+                    }
+                }
+                scm {
+                    connection = "scm:git:https://github.com/wyq0918dev/LVGLAndroid.git"
+                    url = "https://github.com/wyq0918dev/LVGLAndroid"
+                }
             }
         }
     }
