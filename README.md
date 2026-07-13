@@ -17,6 +17,14 @@
 
 ## 如何使用
 
+settings.gradle.kts
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        maven(url = "https://jitpack.io") // 此仓库使用Jitpack发布
+    }
+}
+```
 libs.versions.toml
 ```toml
 [versions]
@@ -34,8 +42,7 @@ android {
 }
 
 dependencies {
-    // 依赖
-    implementation(libs.lvgl.android)
+    implementation(libs.lvgl.android) // 依赖LVGL Prefab库
 }
 ```
 CMakeLists.txt

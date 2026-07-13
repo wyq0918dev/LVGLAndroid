@@ -24,7 +24,7 @@ android {
     prefab {
         create("lvgl") {
             headers = "src/main/cpp/lvgl"
-            //v9.6.0 headers = "src/main/cpp/lvgl/include/lvgl"
+//            headers = "src/main/cpp/lvgl/include/lvgl"
         }
         create("lvgl_demos") {
             headers = "src/main/cpp/lvgl/demos"
@@ -38,7 +38,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
     publishing {
-        singleVariant("release")
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
     }
 }
 
