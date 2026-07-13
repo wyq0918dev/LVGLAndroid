@@ -5,11 +5,9 @@ plugins {
 
 android {
     namespace = "com.wyq0918dev.lvgl.demo"
-
     compileSdk {
         version = release(version = 37)
     }
-
     defaultConfig {
         applicationId = "com.wyq0918dev.lvgl.demo"
         minSdk {
@@ -23,18 +21,15 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
     externalNativeBuild {
         cmake {
             path("src/main/cpp/CMakeLists.txt")
         }
     }
-
     buildFeatures {
         compose = true
         prefab = true
     }
-
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -45,7 +40,6 @@ android {
             )
         }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21

@@ -5,27 +5,22 @@ plugins {
 
 android {
     namespace = "com.wyq0918dev.lvgl"
-
     compileSdk {
         version = release(version = 37)
     }
-
     defaultConfig {
         minSdk {
             version = release(version = 26)
         }
     }
-
     externalNativeBuild {
         cmake {
             path("src/main/cpp/CMakeLists.txt")
         }
     }
-
     buildFeatures {
         prefabPublishing = true
     }
-
     prefab {
         create("lvgl") {
             headers = "src/main/cpp/lvgl"
@@ -38,12 +33,10 @@ android {
             headers = "src/main/cpp/lvgl/examples"
         }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-
     publishing {
         singleVariant("release")
     }
