@@ -38,21 +38,17 @@ class LVGLDemoView(
                     return true
                 }
 
-                MotionEvent.ACTION_UP -> {
-                    lvglOnTouch(
-                        touch = 0,
-                        x = it.x.toInt(),
-                        y = it.y.toInt(),
-                    )
-                }
+                MotionEvent.ACTION_UP -> lvglOnTouch(
+                    touch = 0,
+                    x = it.x.toInt(),
+                    y = it.y.toInt(),
+                )
 
-                MotionEvent.ACTION_CANCEL -> {
-                    lvglOnTouch(
-                        touch = 0,
-                        x = it.x.toInt(),
-                        y = it.y.toInt(),
-                    )
-                }
+                MotionEvent.ACTION_CANCEL -> lvglOnTouch(
+                    touch = 0,
+                    x = it.x.toInt(),
+                    y = it.y.toInt(),
+                )
             }
         }
         if (event?.action == MotionEvent.ACTION_UP) {
@@ -94,7 +90,9 @@ class LVGLDemoView(
         height: Int
     ) = Unit
 
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) = Unit
+    override fun onSurfaceTextureUpdated(
+        surface: SurfaceTexture,
+    ) = Unit
 
     override fun onDetachedFromWindow() {
         if (!mDestroyed) {

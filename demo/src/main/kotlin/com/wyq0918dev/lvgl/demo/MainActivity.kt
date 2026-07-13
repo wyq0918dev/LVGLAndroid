@@ -105,7 +105,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             AndroidView(
                                 factory = { context -> LVGLDemoView(context) },
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier.fillMaxSize(),
                             )
                         }
                     }
