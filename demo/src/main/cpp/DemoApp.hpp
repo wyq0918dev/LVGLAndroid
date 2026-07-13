@@ -45,31 +45,26 @@ public:
     ~DemoApp();
 
     /** 启动 LVGL 渲染，在独立线程中运行主循环 */
-    void start(ANativeWindow *window);
+    void StartRender(ANativeWindow *window);
 
     /** 处理触摸事件，将屏幕坐标映射为 LVGL 逻辑坐标 */
-    void onTouch(int touch, int x, int y);
+    void OnTouch(int touch, int x, int y);
 
     /** 停止渲染线程，等待线程退出 */
-    void stop();
+    void StopRender();
 
 private:
-    ANativeWindow *window = nullptr;          // Android 原生窗口引用
-    ANativeWindow_Buffer windowBuffer;         // NativeWindow 帧缓冲信息
-    int app_width = 480, app_height = 320;     // LVGL 逻辑分辨率
-    int screen_width = 0, screen_height = 0;   // 物理屏幕尺寸（用于触摸坐标映射）
-    uint32_t *surface_buf = nullptr;           // 全帧累积缓冲区（RGBA_8888，4 字节/像素），
-    // ANativeWindow（尤其是 TextureView 的 SurfaceTexture）
-    // 以 RGBA_8888 作为消费者格式，需将 LVGL 的
-    // RGB565 绘制结果转换后写入；多缓冲机制下每次
-    // 锁定可能返回不同缓冲区，需持久缓冲区累积
-    // 局部刷新后整体拷贝
-    size_t surface_size = 0;                    // 全帧累积缓冲区大小
-    atomic<int> isTouch = 0;                   // 触摸状态：1=按下，0=释放
-    atomic<int> touchX = 0;                    // 触摸 X 坐标（已映射为 LVGL 逻辑坐标）
-    atomic<int> touchY = 0;                    // 触摸 Y 坐标（已映射为 LVGL 逻辑坐标）
-    atomic<bool> bIsRunning = false;           // 渲染线程运行标志
-    thread m_thread;                       // LVGL 渲染线程
+    ANativeWindow *Window = nullptr; // Android 原生窗口引用
+    ANativeWindow_Buffer WindowBuffer; // NativeWindow 帧缓冲信息
+    const int AppWidth = 480, AppHeight = 320; // LVGL 逻辑分辨率
+    int ScreenWidth = 0, ScreenHeight = 0; // 物理屏幕尺寸（用于触摸坐标映射）
+    uint32_t *SurfaceBuffer = nullptr; // 全帧累积缓冲区（RGBA_8888，4 字节/像素），
+    size_t SurfaceSize = 0; // 全帧累积缓冲区大小
+    atomic<int> bIsTouch = 0; // 触摸状态：1=按下，0=释放
+    atomic<int> TouchX = 0; // 触摸 X 坐标（已映射为 LVGL 逻辑坐标）
+    atomic<int> TouchY = 0; // 触摸 Y 坐标（已映射为 LVGL 逻辑坐标）
+    atomic<bool> bIsRunning = false; // 渲染线程运行标志
+    thread RenderThread; // LVGL 渲染线程
 
     // LVGL 显示刷新回调（实例方法），将局部区域像素写入 NativeWindow
     void lv_flush_callback(lv_display_t *display, const lv_area_t *area, uint8_t *px_map);

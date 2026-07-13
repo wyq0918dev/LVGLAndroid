@@ -29,19 +29,19 @@ using namespace std;
  * @param px_map LVGL 绘制缓冲，包含 area 区域内的像素数据（RGB565 格式）
  */
 void DemoApp::lv_flush_callback(lv_display_t *display, const lv_area_t *area, uint8_t *px_map) {
-    if (bIsRunning && window != nullptr) {
+    if (bIsRunning && Window != nullptr) {
         // 懒分配全帧累积缓冲区（RGBA_8888，4 字节/像素），大小与 NativeWindow 帧缓冲一致
-        if (surface_buf == nullptr) {
-            surface_size = sizeof(uint32_t) * windowBuffer.stride * windowBuffer.height;
-            surface_buf = (uint32_t *) malloc(surface_size);
+        if (SurfaceBuffer == nullptr) {
+            SurfaceSize = sizeof(uint32_t) * WindowBuffer.stride * WindowBuffer.height;
+            SurfaceBuffer = (uint32_t *) malloc(SurfaceSize);
         }
         int w = area->x2 - area->x1 + 1;
         int h = area->y2 - area->y1 + 1;
         auto *src = (uint16_t *) px_map;        // LVGL 绘制缓冲为 RGB565
-        auto stride = windowBuffer.stride;
+        auto stride = WindowBuffer.stride;
         // 将局部区域 RGB565 逐像素转换为 RGBA_8888 后写入累积缓冲对应位置
         for (int i = 0; i < h; i++) {
-            auto *dst = &surface_buf[(area->y1 + i) * stride + area->x1];
+            auto *dst = &SurfaceBuffer[(area->y1 + i) * stride + area->x1];
             auto *src_line = &src[i * w];
             for (int j = 0; j < w; j++) {
                 uint16_t c = src_line[j];
@@ -53,9 +53,9 @@ void DemoApp::lv_flush_callback(lv_display_t *display, const lv_area_t *area, ui
             }
         }
         // 锁定帧缓冲，整体拷贝后提交显示
-        if (ANativeWindow_lock(window, &windowBuffer, nullptr) == 0) {
-            memcpy(windowBuffer.bits, surface_buf, surface_size);
-            ANativeWindow_unlockAndPost(window);
+        if (ANativeWindow_lock(Window, &WindowBuffer, nullptr) == 0) {
+            memcpy(WindowBuffer.bits, SurfaceBuffer, SurfaceSize);
+            ANativeWindow_unlockAndPost(Window);
         }
     }
     // 通知 LVGL 本次刷新已完成，可以继续下一帧
@@ -72,9 +72,9 @@ void DemoApp::lv_flush_callback(lv_display_t *display, const lv_area_t *area, ui
  * @param data      输出参数，填充当前触摸状态和坐标
  */
 void DemoApp::lv_touch_callback(lv_indev_t *indev_drv, lv_indev_data_t *data) {
-    if (isTouch) {
-        data->point.x = (short) touchX;
-        data->point.y = (short) touchY;
+    if (bIsTouch) {
+        data->point.x = (short) TouchX;
+        data->point.y = (short) TouchY;
         data->state = LV_INDEV_STATE_PR;  // 按下状态
     } else {
         data->state = LV_INDEV_STATE_REL;  // 释放状态
@@ -127,28 +127,28 @@ uint32_t DemoApp::lv_tick_get() {
  * @param win 由 ANativeWindow_fromSurface 获取的 NativeWindow 引用，
  *            调用者负责在渲染线程退出时 release
  */
-void DemoApp::start(ANativeWindow *win) {
-    stop();  // 确保之前的渲染线程已退出
+void DemoApp::StartRender(ANativeWindow *win) {
+    StopRender();  // 确保之前的渲染线程已退出
     if (win == nullptr) {
         return;
     }
-    window = win;
+    Window = win;
     // 记录物理屏幕尺寸，用于触摸坐标映射
-    screen_width = ANativeWindow_getWidth(window);
-    screen_height = ANativeWindow_getHeight(window);
+    ScreenWidth = ANativeWindow_getWidth(Window);
+    ScreenHeight = ANativeWindow_getHeight(Window);
     // 设置 NativeWindow 缓冲区几何属性：使用 LVGL 逻辑分辨率 + RGBA_8888 格式。
     // 采用 RGBA_8888 而非 RGB_565，是因为 TextureView 的 SurfaceTexture 作为消费者
     // 以 RGBA_8888 采样 GL 纹理，RGB_565 在部分设备上会显示错乱；该格式对 SurfaceView
     // 同样兼容。LVGL 绘制缓冲仍为 RGB565，在刷新回调中转换为 RGBA_8888 写入窗口。
-    if (ANativeWindow_setBuffersGeometry(window, app_width, app_height, WINDOW_FORMAT_RGBA_8888) != 0) {
-        LOG_E("Failed to set NativeWindow geometry [%d x %d]", app_width, app_height);
-        ANativeWindow_release(window);
-        window = nullptr;
+    if (ANativeWindow_setBuffersGeometry(Window, AppWidth, AppHeight, WINDOW_FORMAT_RGBA_8888) != 0) {
+        LOG_E("Failed to set NativeWindow geometry [%d x %d]", AppWidth, AppHeight);
+        ANativeWindow_release(Window);
+        Window = nullptr;
         return;
     }
-    LOG_D("LV Screen [%d x %d]", app_width, app_height);
+    LOG_D("LV Screen [%d x %d]", AppWidth, AppHeight);
     bIsRunning = true;
-    m_thread = thread(&DemoApp::lv_loop_task, this);
+    RenderThread = thread(&DemoApp::lv_loop_task, this);
 }
 
 /**
@@ -171,13 +171,13 @@ void DemoApp::lv_loop_task() {
     lv_log_register_print_cb(lv_log_print);
 
     // 创建显示对象，设置用户数据为 this 以便在静态回调中获取实例
-    auto *disp = lv_display_create(app_width, app_height);
+    auto *disp = lv_display_create(AppWidth, AppHeight);
     lv_display_set_user_data(disp, this);
     lv_display_set_flush_cb(disp, DemoApp::lv_flush_cb_static);
 
     // 分配绘制缓冲区（PARTIAL 模式），大小为 1 倍屏幕像素数（RGB565 = 2 字节/像素）
     // 之前使用 10 倍缓冲约 1.5MB，优化后仅需约 300KB，显著降低内存占用
-    size_t buf_size = (size_t) app_width * app_height * 2;
+    size_t buf_size = (size_t) AppWidth * AppHeight * 2;
     auto *buf = malloc(buf_size);
     lv_display_set_buffers(disp, buf, nullptr, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
 
@@ -192,8 +192,8 @@ void DemoApp::lv_loop_task() {
     //--- app ---
 
     // 首帧前先提交一次空帧，确保 NativeWindow 缓冲区已初始化
-    if (ANativeWindow_lock(window, &windowBuffer, nullptr) == 0) {
-        ANativeWindow_unlockAndPost(window);
+    if (ANativeWindow_lock(Window, &WindowBuffer, nullptr) == 0) {
+        ANativeWindow_unlockAndPost(Window);
     }
 
     // LVGL 主循环：lv_timer_handler 返回下次需要运行的时间（毫秒），
@@ -207,14 +207,14 @@ void DemoApp::lv_loop_task() {
     }
 
     // 清理资源
-    ANativeWindow_release(window);
+    ANativeWindow_release(Window);
     lv_deinit();
     free(buf);
-    if (surface_buf != nullptr) {
-        free(surface_buf);
-        surface_buf = nullptr;
+    if (SurfaceBuffer != nullptr) {
+        free(SurfaceBuffer);
+        SurfaceBuffer = nullptr;
     }
-    window = nullptr;
+    Window = nullptr;
     LOG_D("LV App Stopped!!");
 }
 
@@ -222,10 +222,10 @@ void DemoApp::lv_loop_task() {
  * 停止渲染线程。设置运行标志为 false 并等待线程退出。
  * 线程退出后会自动 release NativeWindow 引用。
  */
-void DemoApp::stop() {
+void DemoApp::StopRender() {
     bIsRunning = false;
-    if (m_thread.joinable()) {
-        m_thread.join();
+    if (RenderThread.joinable()) {
+        RenderThread.join();
     }
 }
 
@@ -238,14 +238,14 @@ void DemoApp::stop() {
  * @param x     屏幕物理 X 坐标
  * @param y     屏幕物理 Y 坐标
  */
-void DemoApp::onTouch(int touch, int x, int y) {
-    if (screen_width <= 0 || screen_height <= 0) {
+void DemoApp::OnTouch(int touch, int x, int y) {
+    if (ScreenWidth <= 0 || ScreenHeight <= 0) {
         return;
     }
-    isTouch = touch;
+    bIsTouch = touch;
     // 坐标映射：屏幕物理坐标 → LVGL 逻辑坐标
-    touchX = x * app_width / screen_width;
-    touchY = y * app_height / screen_height;
+    TouchX = x * AppWidth / ScreenWidth;
+    TouchY = y * AppHeight / ScreenHeight;
 }
 
 // 静态刷新回调包装：通过 user_data 获取实例后调用实例方法
@@ -264,7 +264,7 @@ void DemoApp::lv_touch_cb_static(lv_indev_t *indev_drv, lv_indev_data_t *data) {
  * 析构函数，确保渲染线程已停止并释放所有资源。
  */
 DemoApp::~DemoApp() {
-    stop();
+    StopRender();
     LOG_I("LVApp::~LVApp()!!");
 }
 
@@ -297,7 +297,7 @@ static void nativeStart(
     if (window == nullptr) {
         return;
     }
-    GlobalApp->start(window);
+    GlobalApp->StartRender(window);
 }
 
 /** 转发触摸事件到 Native 层 */
@@ -312,7 +312,7 @@ static void nativeOnTouch(
         return;
     }
 
-    GlobalApp->onTouch(touch, x, y);
+    GlobalApp->OnTouch(touch, x, y);
 }
 
 /** 停止渲染线程（暂停渲染，不销毁实例） */
@@ -323,7 +323,7 @@ static void nativeStop(
     if (GlobalApp == nullptr) {
         return;
     }
-    GlobalApp->stop();
+    GlobalApp->StopRender();
 }
 
 /** 销毁 LVApp 实例，释放所有 Native 资源 */
