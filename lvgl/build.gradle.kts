@@ -52,9 +52,9 @@ android {
 publishing {
     publications {
         create<MavenPublication>("release") {
-            groupId = "io.github.wyq0918dev"
-            artifactId = "lvgl"
-            version = "0.0.1+2"
+            groupId = "com.github.wyq0918dev"
+            artifactId = "LVGLAndroid"
+            version = "9.5.0"
             afterEvaluate {
                 from(components["release"])
             }
