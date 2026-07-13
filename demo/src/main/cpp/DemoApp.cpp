@@ -1,11 +1,12 @@
 #include "DemoApp.hpp"
-#include <thread>
-#include <mutex>
-#include <unistd.h>
+#include <android/native_window_jni.h>
+#include <jni.h>
 #include <lv_demos.h>
-#include "logging.hpp"
+#include <unistd.h>
 
 using namespace std;
+
+// ===================== DemoApp 实现 =====================
 
 /**
  * LVGL 显示刷新回调（实例方法）。
@@ -121,7 +122,7 @@ uint32_t DemoApp::lv_tick_get() {
  * 启动 LVGL 渲染。
  *
  * 如果已有渲染线程在运行，先停止并等待退出。然后设置 NativeWindow 的几何属性
- * （分辨率和像素格式为 RGB_565），最后在独立线程中启动 LVGL 主循环。
+ * （分辨率和像素格式为 RGBA_8888），最后在独立线程中启动 LVGL 主循环。
  *
  * @param win 由 ANativeWindow_fromSurface 获取的 NativeWindow 引用，
  *            调用者负责在渲染线程退出时 release
@@ -170,15 +171,15 @@ void DemoApp::lv_loop_task() {
     lv_log_register_print_cb(lv_log_print);
 
     // 创建显示对象，设置用户数据为 this 以便在静态回调中获取实例
-    auto *display = lv_display_create(app_width, app_height);
-    lv_display_set_user_data(display, this);
-    lv_display_set_flush_cb(display, DemoApp::lv_flush_cb_static);
+    auto *disp = lv_display_create(app_width, app_height);
+    lv_display_set_user_data(disp, this);
+    lv_display_set_flush_cb(disp, DemoApp::lv_flush_cb_static);
 
     // 分配绘制缓冲区（PARTIAL 模式），大小为 1 倍屏幕像素数（RGB565 = 2 字节/像素）
     // 之前使用 10 倍缓冲约 1.5MB，优化后仅需约 300KB，显著降低内存占用
     size_t buf_size = (size_t) app_width * app_height * 2;
     auto *buf = malloc(buf_size);
-    lv_display_set_buffers(display, buf, nullptr, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    lv_display_set_buffers(disp, buf, nullptr, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
 
     // 创建触摸输入设备（指针类型）
     auto *indev = lv_indev_create();
@@ -265,4 +266,100 @@ void DemoApp::lv_touch_cb_static(lv_indev_t *indev_drv, lv_indev_data_t *data) {
 DemoApp::~DemoApp() {
     stop();
     LOG_I("LVApp::~LVApp()!!");
+}
+
+// ===================== JNI 桥接层 =====================
+// 连接 Kotlin 层（LVGLDemoView 的 external fun）与 Native 引擎。
+// 全局唯一 DemoApp 实例，整个进程共用一个 LVGL 引擎。
+
+static DemoApp *GlobalApp = nullptr;
+
+/** 创建 LVApp 实例（若尚未创建） */
+static void nativeCreate(
+        JNIEnv *env,
+        jobject /* this */
+) {
+    if (GlobalApp == nullptr) {
+        GlobalApp = new DemoApp();
+    }
+}
+
+/** 启动 LVGL 渲染，将 Java Surface 转换为 ANativeWindow 后传给 LVApp */
+static void nativeStart(
+        JNIEnv *env,
+        jobject /* this */,
+        jobject surface
+) {
+    if (GlobalApp == nullptr || surface == nullptr) {
+        return;
+    }
+    ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
+    if (window == nullptr) {
+        return;
+    }
+    GlobalApp->start(window);
+}
+
+/** 转发触摸事件到 Native 层 */
+static void nativeOnTouch(
+        JNIEnv *env,
+        jobject /* this */,
+        jint touch,
+        jint x,
+        jint y
+) {
+    if (GlobalApp == nullptr) {
+        return;
+    }
+
+    GlobalApp->onTouch(touch, x, y);
+}
+
+/** 停止渲染线程（暂停渲染，不销毁实例） */
+static void nativeStop(
+        JNIEnv *env,
+        jobject /* this */
+) {
+    if (GlobalApp == nullptr) {
+        return;
+    }
+    GlobalApp->stop();
+}
+
+/** 销毁 LVApp 实例，释放所有 Native 资源 */
+static void nativeDestroy(
+        JNIEnv *env,
+        jobject /* this */
+) {
+    if (GlobalApp != nullptr) {
+        delete GlobalApp;
+        GlobalApp = nullptr;
+    }
+}
+
+static const JNINativeMethod gMethods[] = {
+        {"lvglCreate", "()V", (void *) nativeCreate},
+        {"lvglStart", "(Landroid/view/Surface;)V", (void *) nativeStart},
+        {"lvglOnTouch", "(III)V", (void *) nativeOnTouch},
+        {"lvglStop", "()V", (void *) nativeStop},
+        {"lvglDestroy", "()V", (void *) nativeDestroy},
+};
+
+extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    LOG_D("JNI_OnLoad()");
+    JNIEnv *env = nullptr;
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK) {
+        return -1;
+    }
+    jclass clazz = env->FindClass("com/wyq0918dev/lvgl/demo/ui/view/LVGLDemoView");
+    if (clazz == nullptr) {
+        LOG_E("JNI_OnLoad: cannot find class.");
+        return -1;
+    }
+    jint count = sizeof(gMethods) / sizeof(gMethods[0]);
+    if (env->RegisterNatives(clazz, gMethods, count) != JNI_OK) {
+        LOG_E("JNI_OnLoad: RegisterNatives failed");
+        return -1;
+    }
+    return JNI_VERSION_1_4;
 }

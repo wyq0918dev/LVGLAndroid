@@ -13,12 +13,13 @@ endif ()
 # 查找LVGL库
 find_package(lvgl REQUIRED CONFIG)
 # 添加库
-add_library(${CMAKE_PROJECT_NAME} SHARED
-        DemoApi.cpp
+add_library(
+        ${CMAKE_PROJECT_NAME} SHARED
         DemoApp.cpp
 )
 # 链接库
-target_link_libraries(${CMAKE_PROJECT_NAME}
+target_link_libraries(
+        ${CMAKE_PROJECT_NAME}
         android
         log
         lvgl::lvgl
