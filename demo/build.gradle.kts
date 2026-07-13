@@ -5,14 +5,19 @@ plugins {
 
 android {
     namespace = "com.wyq0918dev.lvgl.demo"
+
     compileSdk {
-        version = release(37)
+        version = release(version = 37)
     }
 
     defaultConfig {
         applicationId = "com.wyq0918dev.lvgl.demo"
-        minSdk = 26
-        targetSdk = 37
+        minSdk {
+            version = release(version = 26)
+        }
+        targetSdk {
+            version = release(version = 37)
+        }
         versionCode = 1
         versionName = "1.0"
 
@@ -25,22 +30,25 @@ android {
         }
     }
 
+    buildFeatures {
+        compose = true
+        prefab = true
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        compose = true
-        prefab = true
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 
