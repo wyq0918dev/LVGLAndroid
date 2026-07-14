@@ -26,10 +26,10 @@ android {
             headers = "src/main/cpp/lvgl"
         }
         create("lvgl_demos") {
-            headers = "src/main/cpp/lvgl/demos"
+            headers = "src/main/cpp/lvgl"
         }
         create("lvgl_examples") {
-            headers = "src/main/cpp/lvgl/examples"
+            headers = "src/main/cpp/lvgl"
         }
     }
     compileOptions {
@@ -49,6 +49,7 @@ publishing {
         create<MavenPublication>("release") {
             groupId = "com.github.wyq0918dev"
             artifactId = "LVGLAndroid"
+            version = "9.5.0"
             afterEvaluate {
                 from(components["release"])
             }
