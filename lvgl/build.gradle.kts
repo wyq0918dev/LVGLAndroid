@@ -24,7 +24,6 @@ android {
     prefab {
         create("lvgl") {
             headers = "src/main/cpp/lvgl"
-//            headers = "src/main/cpp/lvgl/include/lvgl"
         }
         create("lvgl_demos") {
             headers = "src/main/cpp/lvgl/demos"
@@ -50,7 +49,6 @@ publishing {
         create<MavenPublication>("release") {
             groupId = "com.github.wyq0918dev"
             artifactId = "LVGLAndroid"
-            version = "9.5.0"
             afterEvaluate {
                 from(components["release"])
             }
