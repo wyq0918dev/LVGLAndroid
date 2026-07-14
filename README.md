@@ -2,7 +2,7 @@
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/wyq0918dev/LVGLAndroid?style=flat-square&logo=github)
 ![GitHub License](https://img.shields.io/github/license/wyq0918dev/LVGLAndroid?style=flat-square&logo=github)
-![GitHub Release Date](https://img.shields.io/github/release-date/wyq0918dev/LVGLAndroid?style=flat-square&logo=github)
+![GitHub Release](https://img.shields.io/github/v/release/wyq0918dev/LVGLAndroid?style=flat-square&logo=github)
 ![JitPack](https://img.shields.io/jitpack/version/com.github.wyq0918dev/LVGLAndroid?style=flat-square&logo=jitpack)
 
 适用于 Android 的 LVGL 静态 Prefab 库.
@@ -45,10 +45,19 @@ dependencies {
     implementation(libs.lvgl.android) // 依赖LVGL Prefab库
 }
 ```
+lv_conf.h
+```txt
+从本项目的 `lv_conf.h` 复制一份到你的项目中按需修改
+```
 CMakeLists.txt
 ```cmake
 # 查找LVGL库
 find_package(lvgl REQUIRED CONFIG)
+# 把 `lv_conf.h` 所在目录加入 include path
+target_include_directories(
+        ${CMAKE_PROJECT_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
 # 链接LVGL库
 target_link_libraries(
         ${CMAKE_PROJECT_NAME}

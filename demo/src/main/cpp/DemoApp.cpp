@@ -1,7 +1,7 @@
 #include "DemoApp.hpp"
 #include <android/native_window_jni.h>
 #include <jni.h>
-#include <lv_demos.h>
+#include <demo/lv_demos.h>
 #include <unistd.h>
 
 using namespace std;
