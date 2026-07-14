@@ -979,17 +979,17 @@
 #endif
 
 /** LODEPNG decoder library */
-#define LV_USE_LODEPNG 0
+#define LV_USE_LODEPNG 1
 
 /** PNG decoder(libpng) library */
 #define LV_USE_LIBPNG 0
 
 /** BMP decoder library */
-#define LV_USE_BMP 0
+#define LV_USE_BMP 1
 
 /** JPG + split JPG decoder library.
  *  Split JPG is a custom format optimized for embedded systems. */
-#define LV_USE_TJPGD 0
+#define LV_USE_TJPGD 1
 
 /** libjpeg-turbo decoder library.
  *  - Supports complete JPEG specifications and high-performance JPEG decoding. */
@@ -999,7 +999,7 @@
 #define LV_USE_LIBWEBP 0
 
 /** GIF decoder library */
-#define LV_USE_GIF 0
+#define LV_USE_GIF 1
 #if LV_USE_GIF
     /** GIF decoder accelerate */
     #define LV_GIF_CACHE_DECODE_DATA 0
@@ -1012,13 +1012,13 @@
 #define LV_BIN_DECODER_RAM_LOAD 0
 
 /** RLE decompress library */
-#define LV_USE_RLE 0
+#define LV_USE_RLE 1
 
 /** QR code library */
-#define LV_USE_QRCODE 0
+#define LV_USE_QRCODE 1
 
 /** Barcode code library */
-#define LV_USE_BARCODE 0
+#define LV_USE_BARCODE 1
 
 /** FreeType library */
 #define LV_USE_FREETYPE 0
@@ -1032,7 +1032,7 @@
 #endif
 
 /** Built-in TTF decoder */
-#define LV_USE_TINY_TTF 0
+#define LV_USE_TINY_TTF 1
 #if LV_USE_TINY_TTF
     /* Enable loading TTF data from files */
     #define LV_TINY_TTF_FILE_SUPPORT 0
@@ -1050,11 +1050,11 @@
  *  Requires `LV_USE_MATRIX = 1`
  *  and a rendering engine supporting vector graphics, e.g.
  *  (LV_USE_DRAW_SW and LV_USE_THORVG) or LV_USE_DRAW_VG_LITE or LV_USE_NEMA_VG. */
-#define LV_USE_VECTOR_GRAPHIC  0
+#define LV_USE_VECTOR_GRAPHIC  1
 
 /** Enable ThorVG (vector graphics library) from the src/libs folder.
  *  Requires LV_USE_VECTOR_GRAPHIC */
-#define LV_USE_THORVG_INTERNAL 0
+#define LV_USE_THORVG_INTERNAL 1
 
 /** Enable ThorVG by assuming that its installed and linked to the project
  *  Requires LV_USE_VECTOR_GRAPHIC */
@@ -1071,7 +1071,7 @@
 
 /*SVG library
  *  - Requires `LV_USE_VECTOR_GRAPHIC = 1` */
-#define LV_USE_SVG 0
+#define LV_USE_SVG 1
 #define LV_USE_SVG_ANIMATION 0
 #define LV_USE_SVG_DEBUG 0
 
@@ -1463,7 +1463,7 @@
     #define LV_USE_DEMO_WIDGETS 1
 
     /** Demonstrate usage of encoder and keyboard. */
-    #define LV_USE_DEMO_KEYPAD_AND_ENCODER 0
+    #define LV_USE_DEMO_KEYPAD_AND_ENCODER 1
 
     /** Benchmark your system */
     #define LV_USE_DEMO_BENCHMARK 1
@@ -1475,7 +1475,7 @@
 
     /** Render test for each primitive.
      *  - Requires at least 480x272 display. */
-    #define LV_USE_DEMO_RENDER 0
+    #define LV_USE_DEMO_RENDER 1
 
     /** Stress test for LVGL */
     #define LV_USE_DEMO_STRESS 1
@@ -1491,7 +1491,7 @@
     #endif
 
     /** Vector graphic demo */
-    #define LV_USE_DEMO_VECTOR_GRAPHIC  0
+    #define LV_USE_DEMO_VECTOR_GRAPHIC  1
 
     /** GLTF demo */
     #define LV_USE_DEMO_GLTF            0
@@ -1501,10 +1501,10 @@
       ---------------------------*/
 
     /** Flex layout demo */
-    #define LV_USE_DEMO_FLEX_LAYOUT     0
+    #define LV_USE_DEMO_FLEX_LAYOUT     1
 
     /** Smart-phone like multi-language demo */
-    #define LV_USE_DEMO_MULTILANG       0
+    #define LV_USE_DEMO_MULTILANG       1
 
     /*E-bike demo with Lottie animations (if LV_USE_LOTTIE is enabled)*/
     #define LV_USE_DEMO_EBIKE           0
@@ -1513,10 +1513,10 @@
     #endif
 
     /** High-resolution demo */
-    #define LV_USE_DEMO_HIGH_RES        0
+    #define LV_USE_DEMO_HIGH_RES        1
 
     /* Smart watch demo */
-    #define LV_USE_DEMO_SMARTWATCH      0
+    #define LV_USE_DEMO_SMARTWATCH      1
 #endif /* LV_BUILD_DEMOS */
 
 /*--END OF LV_CONF_H--*/
