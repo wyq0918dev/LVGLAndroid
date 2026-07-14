@@ -31,7 +31,7 @@ class LVGLDemoView(
             when (it.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                     lvglOnTouch(
-                        touch = 1,
+                        touch = true,
                         x = it.x.toInt(),
                         y = it.y.toInt(),
                     )
@@ -39,13 +39,13 @@ class LVGLDemoView(
                 }
 
                 MotionEvent.ACTION_UP -> lvglOnTouch(
-                    touch = 0,
+                    touch = false,
                     x = it.x.toInt(),
                     y = it.y.toInt(),
                 )
 
                 MotionEvent.ACTION_CANCEL -> lvglOnTouch(
-                    touch = 0,
+                    touch = false,
                     x = it.x.toInt(),
                     y = it.y.toInt(),
                 )
@@ -104,7 +104,7 @@ class LVGLDemoView(
 
     private external fun lvglCreate()
     private external fun lvglStart(surface: Surface?)
-    private external fun lvglOnTouch(touch: Int, x: Int, y: Int)
+    private external fun lvglOnTouch(touch: Boolean, x: Int, y: Int)
     private external fun lvglStop()
     private external fun lvglDestroy()
 

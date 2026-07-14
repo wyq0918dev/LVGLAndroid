@@ -28,62 +28,54 @@
 #define LOG_E(...)
 #endif
 
-using namespace std;
-
-/**
- * LVGL 应用核心类，管理 LVGL 在 Android 上的完整生命周期。
- *
- * 线程安全说明：
- *   - isTouch/touchX/touchY/bIsRunning 使用 atomic 保证跨线程读写安全
- *   - LVGL API 调用全部在渲染线程内完成，不需要额外锁
- *   - start/stop 方法通过 join 保证线程同步
- */
+// LVGL 引擎：管理渲染线程、显示刷新与触摸输入
 class DemoApp {
 
 public:
-    /** 析构函数，停止渲染线程并释放资源 */
     ~DemoApp();
 
-    /** 启动 LVGL 渲染，在独立线程中运行主循环 */
-    void StartRender(ANativeWindow *window);
+    // 绑定 NativeWindow 并启动渲染线程
+    void StartRender(ANativeWindow *Window);
 
-    /** 处理触摸事件，将屏幕坐标映射为 LVGL 逻辑坐标 */
-    void OnTouch(int touch, int x, int y);
+    // 接收触摸（Touch=true 按下），将屏幕坐标映射为逻辑坐标
+    void OnTouch(bool Touch, int X, int Y);
 
-    /** 停止渲染线程，等待线程退出 */
+    // 停止渲染线程并等待退出
     void StopRender();
 
 private:
-    ANativeWindow *Window = nullptr; // Android 原生窗口引用
-    ANativeWindow_Buffer WindowBuffer; // NativeWindow 帧缓冲信息
-    const int AppWidth = 480, AppHeight = 320; // LVGL 逻辑分辨率
-    int ScreenWidth = 0, ScreenHeight = 0; // 物理屏幕尺寸（用于触摸坐标映射）
-    uint32_t *SurfaceBuffer = nullptr; // 全帧累积缓冲区（RGBA_8888，4 字节/像素），
-    size_t SurfaceSize = 0; // 全帧累积缓冲区大小
-    atomic<int> bIsTouch = 0; // 触摸状态：1=按下，0=释放
-    atomic<int> TouchX = 0; // 触摸 X 坐标（已映射为 LVGL 逻辑坐标）
-    atomic<int> TouchY = 0; // 触摸 Y 坐标（已映射为 LVGL 逻辑坐标）
-    atomic<bool> bIsRunning = false; // 渲染线程运行标志
-    thread RenderThread; // LVGL 渲染线程
+    ANativeWindow *Window = nullptr;          // 原生窗口
+    ANativeWindow_Buffer WindowBuffer;        // 帧缓冲信息
+    const int AppWidth = 480;                 // LVGL 逻辑宽
+    const int AppHeight = 320;                // LVGL 逻辑高
+    int ScreenWidth = 0;                      // 物理屏宽（坐标映射）
+    int ScreenHeight = 0;                     // 物理屏高（坐标映射）
+    uint32_t *SurfaceBuffer = nullptr;        // 全帧累积缓冲（解决多缓冲闪烁）
+    size_t SurfaceSize = 0;                   // 累积缓冲大小
+    std::atomic<bool> bIsTouch = false;       // 触摸状态
+    std::atomic<int> TouchX = 0;              // 触摸 X（逻辑坐标）
+    std::atomic<int> TouchY = 0;              // 触摸 Y（逻辑坐标）
+    std::atomic<bool> bIsRunning = false;     // 渲染线程运行标志
+    std::thread RenderThread;                 // 渲染线程
 
-    // LVGL 显示刷新回调（实例方法），将局部区域像素写入 NativeWindow
-    void lv_flush_callback(lv_display_t *display, const lv_area_t *area, uint8_t *px_map);
+    // 刷新回调：RGB565 → RGBA_8888，累积整帧后写入窗口
+    void LvFlushCallback(lv_display_t *Display, const lv_area_t *Area, uint8_t *PxMap);
 
-    // LVGL 触摸输入读取回调（实例方法），向 LVGL 报告当前触摸状态
-    void lv_touch_callback(lv_indev_t *indev_drv, lv_indev_data_t *data);
+    // 触摸回调：向 LVGL 上报当前触摸状态与坐标
+    void LvTouchCallback(lv_indev_t *IndevDriver, lv_indev_data_t *Data);
 
-    // LVGL 主循环任务，运行在独立线程中
-    void lv_loop_task();
+    // 渲染线程主循环
+    void LvLoopTask();
 
-    // LVGL tick 回调，返回当前系统时间戳（毫秒）
-    static uint32_t lv_tick_get();
+    // 心跳：返回毫秒时间戳
+    static uint32_t LvTickGet();
 
-    // LVGL 日志回调，转发到 Android logcat
-    static void lv_log_print(lv_log_level_t level, const char *buf);
+    // 日志：转发到 logcat
+    static void LvLogPrint(lv_log_level_t Level, const char *Buf);
 
-    // 静态刷新回调包装，通过 user_data 转发到实例方法
-    static void lv_flush_cb_static(lv_display_t *display, const lv_area_t *area, uint8_t *px_map);
+    // 静态刷新回调包装（C 回调 → 实例方法）
+    static void LvFlushCbStatic(lv_display_t *Display, const lv_area_t *Area, uint8_t *PxMap);
 
-    // 静态触摸回调包装，通过 user_data 转发到实例方法
-    static void lv_touch_cb_static(lv_indev_t *indev_drv, lv_indev_data_t *data);
+    // 静态触摸回调包装（C 回调 → 实例方法）
+    static void LvTouchCbStatic(lv_indev_t *IndevDriver, lv_indev_data_t *Data);
 };
